@@ -1,6 +1,7 @@
 package edu.nchu.cs.ai.bean;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -89,45 +90,40 @@ public class Ant {
 		City currentCity = this.tourCity.get(this.tourCity.size()-1);
 		Path nextPath = null;
 		Map<String,Path> outcomes = paths.get(currentCity.getName());
+		Map<Path,Double> allowPaths = new HashMap<>();
 		Iterator<Path> ite = outcomes.values().iterator();
 		double total = 0.0;
-		int cnt=0;
 		while (ite.hasNext()) {
 			Path path = ite.next();
 			if (this.tourCity.contains(path.getTo())) {
 				continue;
 			}
-			cnt++;
-			total += Math.pow(path.getPheromone(), this.pheromoneAffectRate) * Math.pow(1/path.getDistance(), this.distanceAffectRate);
+			double probability = Math.pow(path.getPheromone(), this.pheromoneAffectRate) * Math.pow(1/path.getDistance(), this.distanceAffectRate);
+			allowPaths.put(path, probability);
+			total += probability;
 		}
 		double randProb = new Random().nextDouble();
 		double p = 0;
 		double probability = 0;
 		Path lastPath = null;
-		ite = outcomes.values().iterator();
-		while (ite.hasNext()) {
-			Path path = ite.next();
-			if (this.tourCity.contains(path.getTo())) {
-				continue;
-			}
-			probability = (Math.pow(path.getPheromone(), this.pheromoneAffectRate) * Math.pow(1/path.getDistance(), this.distanceAffectRate))/total;
-			p+=probability;
-			if (randProb <= p) {
+		Iterator<Path> itePath = allowPaths.keySet().iterator();
+		while(itePath.hasNext()) {
+			Path path = itePath.next();
+			probability = allowPaths.get(path) / total;
+			if (randProb < (p+=probability)) {
 				nextPath = path;
 				break;
 			}
-			lastPath = path;
 		}
-		if (nextPath == null) {
-			System.out.println("probability="+probability + ", p="+p);
-			System.out.println(this.tourCity.size());
-			System.out.println("from:" + lastPath.getFrom().getName()
-					+ ",to:" + lastPath.getTo().getName()
-					+ ",pheromone:" + lastPath.getPheromone()
-					+ ",distance:" + lastPath.getDistance()
-					+ ",cnt:" + cnt
-					+ ",total:" + total);
-		}
+//		if (nextPath == null) {
+//			System.out.println("probability="+probability + ", p="+p);
+//			System.out.println(this.tourCity.size());
+//			System.out.println("from:" + lastPath.getFrom().getName()
+//					+ ",to:" + lastPath.getTo().getName()
+//					+ ",pheromone:" + lastPath.getPheromone()
+//					+ ",distance:" + lastPath.getDistance()
+//					+ ",total:" + total);
+//		}
 		return nextPath;
 	}
 

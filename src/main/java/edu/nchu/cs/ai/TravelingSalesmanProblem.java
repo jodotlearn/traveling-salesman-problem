@@ -39,16 +39,16 @@ public class TravelingSalesmanProblem extends Application{
 		String impleAnswer = "resources/berlin52.imp.opt.tour";
 
 		//ant number
-		int antCount = 100;
+		int antCount = 300;
 		//ant's pheromone
-		double pheromone = 1000;
+		double pheromone = 2000;
 		//pheromone affect rate (alpha)
 		double pheromoneAffectRate = 1;
 		//distance affect rate (beta)
-		double distanceAffectRate = 2;
+		double distanceAffectRate = 5;
 		//Pheromone Evaporation Rate
-		double evaporationRate = 0.5;
-		int iteration = 1000;
+		double evaporationRate = 0.8;
+		int iteration = 500;
 		int runTimes = 1;
 		try {
 			Path path = Paths.get(citySource);
