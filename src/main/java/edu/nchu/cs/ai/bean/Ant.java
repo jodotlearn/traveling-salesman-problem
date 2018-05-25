@@ -102,6 +102,10 @@ public class Ant {
 			allowPaths.put(path, probability);
 			total += probability;
 		}
+
+		if (total == 0) {
+			total = 1;
+		}
 		double randProb = new Random().nextDouble();
 		double p = 0;
 		double probability = 0;
@@ -115,15 +119,27 @@ public class Ant {
 				break;
 			}
 		}
-//		if (nextPath == null) {
-//			System.out.println("probability="+probability + ", p="+p);
-//			System.out.println(this.tourCity.size());
-//			System.out.println("from:" + lastPath.getFrom().getName()
-//					+ ",to:" + lastPath.getTo().getName()
-//					+ ",pheromone:" + lastPath.getPheromone()
-//					+ ",distance:" + lastPath.getDistance()
-//					+ ",total:" + total);
-//		}
+		//a stupid way to solve the overflow issue
+		if (p == 0 && allowPaths.size() > 0) {
+			System.out.println(p);
+			System.out.println(allowPaths.size());
+			if (allowPaths.size() == 1) {
+				nextPath = (Path) allowPaths.keySet().toArray()[0];
+			}else {
+				int idx = new Random().nextInt(allowPaths.size()-1);
+				nextPath = (Path) allowPaths.keySet().toArray()[idx];
+			}
+		}
+		
+		if (nextPath == null) {
+			System.out.println("probability="+probability + ", p="+p);
+			System.out.println(this.tourCity.size());
+			System.out.println("from:" + lastPath.getFrom().getName()
+					+ ",to:" + lastPath.getTo().getName()
+					+ ",pheromone:" + lastPath.getPheromone()
+					+ ",distance:" + lastPath.getDistance()
+					+ ",total:" + total);
+		}
 		return nextPath;
 	}
 

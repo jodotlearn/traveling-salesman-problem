@@ -34,21 +34,25 @@ public class TravelingSalesmanProblem extends Application{
 	private static Map<String,List<Double>> data;
 
 	public static void main(String[] args) {
-		String citySource = "resources/berlin52.tsp";
-		String offcialAnswer = "resources/berlin52.opt.tour";
-		String impleAnswer = "resources/berlin52.imp.opt.tour";
+//		String citySource = "resources/berlin52.tsp";
+//		String offcialAnswer = "resources/berlin52.opt.tour";
+//		String impleAnswer = "resources/berlin52.imp.opt.tour";
+		String citySource = "resources/eil51.tsp";
+		String offcialAnswer = "resources/eil51.opt.tour";
+		String impleAnswer = "resources/eil51.imp.opt.tour";
+
 
 		//ant number
-		int antCount = 300;
+		int antCount = 100;
 		//ant's pheromone
-		double pheromone = 2000;
+		double pheromone = 100;
 		//pheromone affect rate (alpha)
 		double pheromoneAffectRate = 1;
 		//distance affect rate (beta)
 		double distanceAffectRate = 5;
 		//Pheromone Evaporation Rate
-		double evaporationRate = 0.8;
-		int iteration = 500;
+		double evaporationRate = 0.5;
+		int iteration = 2000;
 		int runTimes = 1;
 		try {
 			Path path = Paths.get(citySource);
