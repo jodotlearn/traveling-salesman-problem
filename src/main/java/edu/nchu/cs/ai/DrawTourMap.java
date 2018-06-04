@@ -14,8 +14,11 @@ import edu.nchu.cs.ai.bean.City;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
@@ -68,10 +71,14 @@ public class DrawTourMap extends Application {
 
 	@Override
 	public void start(Stage primaryStage) {
-		FlowPane flow = new FlowPane();
+		HBox hbox = new HBox();
+		VBox vbox = new VBox();
+		VBox vbox2 = new VBox();
+		Label label = new Label("Offcial Tour Map");
+		Label label2 = new Label("My Implementation");
 		Pane pane = new Pane();
 		Pane pane2 = new Pane();
-		flow.setPadding(new Insets(5,5,5,5));
+//		flow.setPadding(new Insets(5,5,5,5));
 		pane.setPadding(new Insets(5,5,5,5));
 		pane2.setPadding(new Insets(5,5,5,5));
 		Map<String,Circle> mapping1 = new HashMap<>();
@@ -100,8 +107,15 @@ public class DrawTourMap extends Application {
 				this.connect(pane2, c1, c2, Color.LIGHTSKYBLUE);
 			}
 		}
-		flow.getChildren().addAll(pane, pane2);
-		Scene scene = new Scene(flow, 1000, 600);
+//		flow.getChildren().addAll(pane, pane2);
+		vbox.getChildren().add(label);
+		vbox.getChildren().add(pane);
+		vbox2.getChildren().add(label2);
+		vbox2.getChildren().add(pane2);
+		hbox.getChildren().add(vbox);
+		hbox.getChildren().add(vbox2);
+		Scene scene = new Scene(hbox, 900, 400);
+		primaryStage.setTitle("Tour Map");
 		primaryStage.setScene(scene);
 		primaryStage.show();
 

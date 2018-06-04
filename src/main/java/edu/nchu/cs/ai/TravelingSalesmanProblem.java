@@ -21,6 +21,8 @@ import javafx.scene.Scene;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
+import javafx.scene.control.Label;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
 public class TravelingSalesmanProblem extends Application{
@@ -41,18 +43,17 @@ public class TravelingSalesmanProblem extends Application{
 		String offcialAnswer = "resources/eil51.opt.tour";
 		String impleAnswer = "resources/eil51.imp.opt.tour";
 
-
 		//ant number
-		int antCount = 100;
+		int antCount = 50;
 		//ant's pheromone
 		double pheromone = 100;
 		//pheromone affect rate (alpha)
 		double pheromoneAffectRate = 1;
 		//distance affect rate (beta)
-		double distanceAffectRate = 5;
+		double distanceAffectRate = 3;
 		//Pheromone Evaporation Rate
-		double evaporationRate = 0.5;
-		int iteration = 2000;
+		double evaporationRate = 0.1;
+		int iteration = 500;
 		int runTimes = 1;
 		try {
 			Path path = Paths.get(citySource);
@@ -68,6 +69,7 @@ public class TravelingSalesmanProblem extends Application{
 			}).filter(line -> line != null).collect(Collectors.toList());
 			Solution best = null;
 			double objValue = Double.MAX_VALUE;
+			long start = System.currentTimeMillis();
 			while (runTimes > 0){
 				AntColonyOptimization aco = new
 						AntColonyOptimization(cities, antCount, pheromone, pheromoneAffectRate, distanceAffectRate, evaporationRate, iteration);
@@ -80,6 +82,7 @@ public class TravelingSalesmanProblem extends Application{
 				totalDetail.add(os.getExecuteDetail());
 				runTimes--;
 			}
+			long end = System.currentTimeMillis();
 			//write the best answer to a file.
 			Path outputPath = Paths.get(impleAnswer);
 			String output = best.toString();
@@ -113,12 +116,14 @@ public class TravelingSalesmanProblem extends Application{
 				avgData.add(tmp.stream().mapToDouble(val -> val).average().getAsDouble());
 				offcialData.add(offcialShortestDist);
 			}
+			System.out.println("The average shortest distance of this implementation:" + avgData.get(avgData.size()-1));
+			System.out.println("spent time:" + ((double)end-start)/1000 + " seconds");
 			chartData.put("Offcial Optimum", offcialData);
 			chartData.put("My Implementation", avgData);
 			winTitle = "Convergence Chart";
 			width = 800;
 			height = 600;
-			chartTitle = "Ant Colony Optimization (berlin52.tsp)";
+			chartTitle = "Ant Colony Optimization";
 			axisXName = "Iteration";
 			axisYName = "Shortest Distance";
 			data = chartData;
@@ -155,8 +160,8 @@ public class TravelingSalesmanProblem extends Application{
 		}
 		//not show node
 		for (XYChart.Series<Number,Number> series:lineChart.getData()) {
-			for (XYChart.Data<Number,Number> data:series.getData()) {
-				data.getNode().setVisible(false);
+			for (XYChart.Data<Number,Number> d:series.getData()) {
+				d.getNode().setVisible(false);
 			}
 		}
 		Scene scene  = new Scene(lineChart,this.width,this.height);

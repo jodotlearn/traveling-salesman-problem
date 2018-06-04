@@ -64,14 +64,6 @@ public class Ant {
 		this.tourCity.add(pathToStart.getTo());
 		this.tourPath.add(pathToStart);
 		this.tourDistance += pathToStart.getDistance();
-//		for (Path path:paths) {
-//			if (path.getFrom() == this.tourCity.get(this.tourCity.size()-1) && path.getTo() == startCity) {
-//				this.tourCity.add(path.getTo());
-//				this.tourPath.add(path);
-//				this.tourDistance += path.getDistance();
-//				break;
-//			}
-//		}
 	}
 
 	public List<City> getTourCity(){
@@ -91,84 +83,68 @@ public class Ant {
 		Path nextPath = null;
 		Map<String,Path> outcomes = paths.get(currentCity.getName());
 		Map<Path,Double> allowPaths = new HashMap<>();
-		Iterator<Path> ite = outcomes.values().iterator();
 		double total = 0.0;
-		while (ite.hasNext()) {
-			Path path = ite.next();
-			if (this.tourCity.contains(path.getTo())) {
-				continue;
-			}
-			double probability = Math.pow(path.getPheromone(), this.pheromoneAffectRate) * Math.pow(1/path.getDistance(), this.distanceAffectRate);
-			allowPaths.put(path, probability);
-			total += probability;
-		}
-
-		if (total == 0) {
-			total = 1;
-		}
 		double randProb = new Random().nextDouble();
-		double p = 0;
-		double probability = 0;
-		Path lastPath = null;
-		Iterator<Path> itePath = allowPaths.keySet().iterator();
-		while(itePath.hasNext()) {
-			Path path = itePath.next();
-			probability = allowPaths.get(path) / total;
-			if (randProb < (p+=probability)) {
-				nextPath = path;
-				break;
+		Iterator<Path> ite = outcomes.values().iterator();
+		if (randProb >= 0.6) {
+			while (ite.hasNext()) {
+				Path path = ite.next();
+				if (this.tourCity.contains(path.getTo())) {
+					continue;
+				}
+				double probability = Math.pow(path.getPheromone(), this.pheromoneAffectRate) * Math.pow(1/path.getDistance(), this.distanceAffectRate);
+				allowPaths.put(path, probability);
+				total += probability;
+			}
+			//total will be zero if overflow
+	//		if (total == 0) {
+	//			total = 1;
+	//		}
+			
+			double p = 0;
+			double probability = 0;
+			Path lastPath = null;
+			Iterator<Path> itePath = allowPaths.keySet().iterator();
+			while(itePath.hasNext()) {
+				Path path = itePath.next();
+				probability = allowPaths.get(path) / total;
+				if (randProb < (p+=probability)) {
+					nextPath = path;
+					break;
+				}
+			}
+		}else {
+			double maxPheromone = 0;
+			while (ite.hasNext()) {
+				Path path = ite.next();
+				if (this.tourCity.contains(path.getTo())) {
+					continue;
+				}
+				double probability = Math.pow(path.getPheromone(), this.pheromoneAffectRate) * Math.pow(1/path.getDistance(), this.distanceAffectRate);
+				if (probability > maxPheromone) {
+					maxPheromone = probability;
+					nextPath = path;
+				}
 			}
 		}
 		//a stupid way to solve the overflow issue
-		if (p == 0 && allowPaths.size() > 0) {
-			System.out.println(p);
-			System.out.println(allowPaths.size());
-			if (allowPaths.size() == 1) {
-				nextPath = (Path) allowPaths.keySet().toArray()[0];
-			}else {
-				int idx = new Random().nextInt(allowPaths.size()-1);
-				nextPath = (Path) allowPaths.keySet().toArray()[idx];
-			}
-		}
-		
-		if (nextPath == null) {
-			System.out.println("probability="+probability + ", p="+p);
-			System.out.println(this.tourCity.size());
-			System.out.println("from:" + lastPath.getFrom().getName()
-					+ ",to:" + lastPath.getTo().getName()
-					+ ",pheromone:" + lastPath.getPheromone()
-					+ ",distance:" + lastPath.getDistance()
-					+ ",total:" + total);
-		}
+//		if (p == 0 && allowPaths.size() > 0) {
+//			System.out.println("overflow");
+//			Path[] pathArr = (Path[]) allowPaths.keySet().toArray();
+//			if (allowPaths.size() == 1) {
+//				nextPath = pathArr[0];
+//			}else {
+//				Path minDistPath = null;
+//				double dist = Double.MAX_VALUE;
+//				for (Path path:pathArr) {
+//					if (dist < path.getDistance()) {
+//						dist = path.getDistance();
+//						minDistPath = path;
+//					}
+//				}
+//				nextPath = minDistPath;
+//			}
+//		}
 		return nextPath;
 	}
-
-//	private Path findNextPath(List<Path> paths) {
-//		City currentCity = this.tourCity.get(this.tourCity.size()-1);
-//		Path nextPath = null;
-//		List<Path> outcomes = paths.stream()
-//					.filter(path -> (path.getFrom() == currentCity && !this.tourCity.contains(path.getTo())))
-//					.collect(Collectors.toList());
-//		if (outcomes.size() > 0) {
-//			double total = 0;
-//			for (Path path:outcomes) {
-//				total += Math.pow(path.getPheromone(), this.pheromoneAffectRate) * Math.pow(1/path.getDistance(), this.distanceAffectRate);
-//			}
-//			double randProb = new Random().nextDouble();
-//			double p = 0;
-//			for (Path path:outcomes) {
-//				double probability = (Math.pow(path.getPheromone(), this.pheromoneAffectRate) * Math.pow(1/path.getDistance(), this.distanceAffectRate))/total;
-//				if (randProb <= (p+=probability)) {
-//					nextPath = path;
-//					break;
-//				}
-//			}
-//			if (nextPath == null) {
-//				nextPath = outcomes.get(new Random().nextInt(outcomes.size() -1));
-//			}
-//		}else {
-//			nextPath = null;
-//		}
-//		return nextPath;
-//	}
 }

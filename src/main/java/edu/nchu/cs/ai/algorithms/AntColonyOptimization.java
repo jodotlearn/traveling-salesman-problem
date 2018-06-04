@@ -17,8 +17,6 @@ import edu.nchu.cs.ai.solution.Solution;
 public class AntColonyOptimization {
 	private int iteration;
 	private List<City> cities;
-//	private List<Ant> ants = new ArrayList<>();
-//	private List<Path> paths = new ArrayList<>();
 	private Map<String,Map<String,Path>> paths;
 	private int antCount;
 	private double pheromone;
@@ -37,7 +35,6 @@ public class AntColonyOptimization {
 		this.pheromoneAffectRate = pheromoneAffectRate;
 		this.distanceAfffectRate = distanceAffectRate;
 		this.evaporationRate = evaporationRate;
-//		this.paths = new ArrayList<>();
 		this.paths = new HashMap<>();
 	}
 
@@ -57,12 +54,6 @@ public class AntColonyOptimization {
 				ant.resetTourHistory();
 				ant.startTour(this.cities, this.paths, startCity);
 			}
-			//update pheromone
-			// 1. evaporation
-//			for (Path path:this.paths) {
-//				double pathPhero = path.getPheromone();
-//				path.setPheromone((1-this.evaporationRate) * pathPhero);
-//			}
 			Iterator<Map<String,Path>> ite = this.paths.values().iterator();
 			while (ite.hasNext()) {
 				Map<String,Path> map = ite.next();
@@ -74,10 +65,15 @@ public class AntColonyOptimization {
 				}
 			}
 			// 2. update
+			Path forward;
+			Path reverse;
 			for (Ant ant:ants) {
 				double updatePhero = ant.getPheromone() / ant.getTourDistance();
 				for (Path path:ant.getTourPath()) {
-					path.setPheromone(path.getPheromone() + updatePhero);
+					forward = this.paths.get(path.getFrom().getName()).get(path.getTo().getName());
+					reverse = this.paths.get(path.getTo().getName()).get(path.getFrom().getName());
+					forward.setPheromone(forward.getPheromone() + updatePhero);
+					reverse.setPheromone(reverse.getPheromone() + updatePhero);
 				}
 			}
 			//determination
