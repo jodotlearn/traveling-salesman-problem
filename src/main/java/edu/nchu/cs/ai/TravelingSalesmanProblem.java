@@ -5,10 +5,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -21,8 +25,6 @@ import javafx.scene.Scene;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
-import javafx.scene.control.Label;
-import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
 public class TravelingSalesmanProblem extends Application{
@@ -35,30 +37,30 @@ public class TravelingSalesmanProblem extends Application{
 	private static double height;
 	private static Map<String,List<Double>> data;
 
-	public static void main(String[] args) {
-//		String citySource = "resources/berlin52.tsp";
-//		String offcialAnswer = "resources/berlin52.opt.tour";
-//		String impleAnswer = "resources/berlin52.imp.opt.tour";
+	public static void main(String[] args) throws InterruptedException, ExecutionException {
+		//load and prepare the output files
 		String citySource = "resources/eil51.tsp";
 		String offcialAnswer = "resources/eil51.opt.tour";
-		String impleAnswer = "resources/eil51.imp.opt.tour";
+		String impleAnswer = "resources/eil51.imp.opt9.tour";
+		String impleImproveAnswer = "resources/eil51.impimprove.opt9.tour";
 
 		//ant number
 		int antCount = 50;
 		//ant's pheromone
-		double pheromone = 100;
+		double pheromone = 10;
 		//pheromone affect rate (alpha)
 		double pheromoneAffectRate = 1;
 		//distance affect rate (beta)
-		double distanceAffectRate = 3;
+		double distanceAffectRate = 2;
 		//Pheromone Evaporation Rate
-		double evaporationRate = 0.1;
-		int iteration = 500;
-		int runTimes = 1;
+		double evaporationRate = 0.7;
+		int iteration = 2000;
+		int runTimes =30;
 		try {
 			Path path = Paths.get(citySource);
 			Stream<String> stream = Files.lines(path);
 			List<List<Solution>> totalDetail = new ArrayList<>();
+			List<List<Solution>> totalDetailImprove = new ArrayList<>();
 			List<City> cities = stream.map(line -> {
 					String[] fields = line.split(" ");
 					City city = null;
@@ -68,25 +70,48 @@ public class TravelingSalesmanProblem extends Application{
 					return city;
 			}).filter(line -> line != null).collect(Collectors.toList());
 			Solution best = null;
+			Solution bestImprove = null;
 			double objValue = Double.MAX_VALUE;
+			double objValueImprove = Double.MAX_VALUE;
 			long start = System.currentTimeMillis();
 			while (runTimes > 0){
+				ExecutorService executor = Executors.newFixedThreadPool(2);
+				//original ACO
 				AntColonyOptimization aco = new
-						AntColonyOptimization(cities, antCount, pheromone, pheromoneAffectRate, distanceAffectRate, evaporationRate, iteration);
-				OptimumSolution os = aco.run();
+						AntColonyOptimization(cities, antCount, pheromone, pheromoneAffectRate, distanceAffectRate, evaporationRate, iteration, false);
+				//improve ACO
+				AntColonyOptimization acoImprove = new
+						AntColonyOptimization(cities, antCount, pheromone, pheromoneAffectRate, distanceAffectRate, evaporationRate, iteration, true);
+				Future<OptimumSolution> acoFuture = executor.submit(aco);
+				Future<OptimumSolution> acoImproveFuture = executor.submit(acoImprove);
+				OptimumSolution os = acoFuture.get();
+				OptimumSolution osImprove = acoImproveFuture.get();
+				executor.shutdown();
+
+				//find the best solution from 30 run times (2000 iterations)
 				Solution solution = (Solution) os.getSolution();
 				if (solution.getObjectiveValue() < objValue) {
 					best = solution;
 					objValue = best.getObjectiveValue();
 				}
+				Solution solutionImprove = (Solution) osImprove.getSolution();
+				if (solutionImprove.getObjectiveValue() < objValueImprove) {
+					bestImprove = solutionImprove;
+					objValueImprove = bestImprove.getObjectiveValue();
+				}
 				totalDetail.add(os.getExecuteDetail());
+				totalDetailImprove.add(osImprove.getExecuteDetail());
 				runTimes--;
 			}
 			long end = System.currentTimeMillis();
-			//write the best answer to a file.
+			//output the best answer to a file.
 			Path outputPath = Paths.get(impleAnswer);
 			String output = best.toString();
 			Files.write(outputPath, output.getBytes());
+			//output the best improve answer to a file
+			Path outputPathImprove = Paths.get(impleImproveAnswer);
+			String outputImprove = bestImprove.toString();
+			Files.write(outputPathImprove, outputImprove.getBytes());
 
 			//calculate offcial answers
 			Path pathOpt = Paths.get(offcialAnswer);
@@ -95,31 +120,38 @@ public class TravelingSalesmanProblem extends Application{
 			double offcialShortestDist = 0;
 			for (int i=0;i<citiesOpt.size();i++) {
 				if (i+1 < citiesOpt.size()) {
-					double distance = Math.sqrt(Math.pow(citiesOpt.get(i).getPosX()-citiesOpt.get(i+1).getPosX(), 2)
-							+ Math.pow(citiesOpt.get(i).getPosY()-citiesOpt.get(i+1).getPosY(), 2));
+					double distance = Math.round(Math.sqrt(Math.pow(citiesOpt.get(i).getPosX()-citiesOpt.get(i+1).getPosX(), 2)
+							+ Math.pow(citiesOpt.get(i).getPosY()-citiesOpt.get(i+1).getPosY(), 2)));
 					offcialShortestDist += distance;
 				}
 			}
 
 			System.out.println("official shortest distance:" + offcialShortestDist);
 			System.out.println("The shortest distance of this implementation:" + best.getObjectiveValue());
+			System.out.println("The shortest distance of this implementation (improve):" + bestImprove.getObjectiveValue());
 
-			Map<String, List<Double>> chartData = new HashMap<>();
+			Map<String, List<Double>> chartData = new TreeMap<>();
 			List<Double> avgData = new ArrayList<>();
+			List<Double> avgDataImprove = new ArrayList<>();
 			List<Double> offcialData = new ArrayList<>();
-			List<Double> tmp;
+			List<Double> tmp, tmpImprove;
 			for (int i=0;i<totalDetail.get(0).size();i++) {
 				tmp = new ArrayList<>();
+				tmpImprove = new ArrayList<>();
 				for (int j=0;j<totalDetail.size();j++) {
 					tmp.add(totalDetail.get(j).get(i).getObjectiveValue());
+					tmpImprove.add(totalDetailImprove.get(j).get(i).getObjectiveValue());
 				}
 				avgData.add(tmp.stream().mapToDouble(val -> val).average().getAsDouble());
+				avgDataImprove.add(tmpImprove.stream().mapToDouble(val -> val).average().getAsDouble());
 				offcialData.add(offcialShortestDist);
 			}
 			System.out.println("The average shortest distance of this implementation:" + avgData.get(avgData.size()-1));
+			System.out.println("The average shortest distance of this implementation(improve):" + avgDataImprove.get(avgDataImprove.size()-1));
 			System.out.println("spent time:" + ((double)end-start)/1000 + " seconds");
+			chartData.put("ACO", avgData);
+			chartData.put("ACO (Improve)", avgDataImprove);
 			chartData.put("Offcial Optimum", offcialData);
-			chartData.put("My Implementation", avgData);
 			winTitle = "Convergence Chart";
 			width = 800;
 			height = 600;
@@ -129,7 +161,6 @@ public class TravelingSalesmanProblem extends Application{
 			data = chartData;
 			launch();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -158,7 +189,7 @@ public class TravelingSalesmanProblem extends Application{
 			}
 			lineChart.getData().add(series);
 		}
-		//not show node
+		//hidden node
 		for (XYChart.Series<Number,Number> series:lineChart.getData()) {
 			for (XYChart.Data<Number,Number> d:series.getData()) {
 				d.getNode().setVisible(false);
