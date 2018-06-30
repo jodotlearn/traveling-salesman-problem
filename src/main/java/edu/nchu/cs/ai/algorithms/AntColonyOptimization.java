@@ -15,6 +15,11 @@ import edu.nchu.cs.ai.solution.PathSolution;
 import edu.nchu.cs.ai.solution.Solution;
 import edu.nchu.cs.ai.util.RandomUtils;
 
+/**
+ * Particle Swarm Optimization
+ * @author Jo
+ *
+ */
 public class AntColonyOptimization implements Callable<OptimumSolution>{
 	private int iteration;
 	private List<City> cities;
@@ -25,6 +30,7 @@ public class AntColonyOptimization implements Callable<OptimumSolution>{
 	private double distanceAfffectRate;
 	private double evaporationRate;
 	private boolean improve;
+	private int timesToLocalOptimum;
 
 	@Override
 	public OptimumSolution call() throws Exception {
@@ -34,7 +40,7 @@ public class AntColonyOptimization implements Callable<OptimumSolution>{
 	private AntColonyOptimization() {
 		//not allow initialize a constructor without arguments
 	}
-	public AntColonyOptimization(List<City> cities, int antCount, double pheromone, double pheromoneAffectRate, double distanceAffectRate, double evaporationRate, int iteration, boolean improve) {
+	public AntColonyOptimization(List<City> cities, int antCount, double pheromone, double pheromoneAffectRate, double distanceAffectRate, double evaporationRate, int timesToLocalOptimum, int iteration, boolean improve) {
 		this.cities = cities;
 		this.antCount = antCount;
 		this.iteration = iteration;
@@ -42,12 +48,12 @@ public class AntColonyOptimization implements Callable<OptimumSolution>{
 		this.pheromoneAffectRate = pheromoneAffectRate;
 		this.distanceAfffectRate = distanceAffectRate;
 		this.evaporationRate = evaporationRate;
+		this.timesToLocalOptimum = timesToLocalOptimum;
 		this.paths = new HashMap<>();
 		this.improve = improve;
 	}
 
 	public OptimumSolution run() {
-		int timesToLocalOptimum = 10;
 		OptimumSolution os = new OptimumSolution();
 		this.paths = this.initPaths(this.cities);
 		List<Ant> ants = this.initAnts(this.antCount, this.pheromone, this.pheromoneAffectRate, this.distanceAfffectRate);
@@ -67,7 +73,7 @@ public class AntColonyOptimization implements Callable<OptimumSolution>{
 			Map<Path,Double> pathUpdatePhero = new HashMap<Path,Double>();
 			for (Ant ant:ants) {
 				if (this.improve) {
-					ant.resetTourHistory(sameCnt>timesToLocalOptimum?0.5:1);
+					ant.resetTourHistory(sameCnt>this.timesToLocalOptimum?0.5:1);
 				}else {
 					ant.resetTourHistory(1);
 				}
@@ -103,7 +109,7 @@ public class AntColonyOptimization implements Callable<OptimumSolution>{
 					sameCnt = 0;
 				}
 				//disturb
-				if (sameCnt > timesToLocalOptimum) {
+				if (sameCnt > this.timesToLocalOptimum) {
 					for (Path path:shortestPath) {
 						double ratio = RandomUtils.randDouble();
 						if (ratio <= 0.6) {

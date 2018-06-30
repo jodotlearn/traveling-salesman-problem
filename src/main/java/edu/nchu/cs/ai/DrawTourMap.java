@@ -28,8 +28,8 @@ import javafx.stage.Stage;
 /**
  * Draw tour map.
  *  - official optimum
- *  - the optimum of original implementation
- *  - the optimum of the improvement implementation
+ *  - the optimum of original ACO implementation
+ *  - the optimum of the improvement ACO implementation
  *
  */
 public class DrawTourMap extends Application {
@@ -174,7 +174,6 @@ public class DrawTourMap extends Application {
 		impImprovePane.boundsInLocalProperty()));
 		impImprovePane.getTransforms().add(scale3);
 
-//		flow.getChildren().addAll(pane, pane2);
 		vbox.getChildren().add(label);
 		vbox.getChildren().add(offcialPane);
 		vbox2.getChildren().add(label2);

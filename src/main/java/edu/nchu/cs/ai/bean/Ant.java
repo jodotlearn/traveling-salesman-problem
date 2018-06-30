@@ -107,7 +107,7 @@ public class Ant {
 		}
 		//total will be zero if overflow
 		if (total == 0) {
-			System.out.println(" overflow ");
+//			System.out.println(" overflow ");
 			total = 1;
 		}
 		Path[] pathArr = allowPaths.keySet().toArray(new Path[allowPaths.size()]);
@@ -164,7 +164,7 @@ public class Ant {
 		}
 		//a stupid way to solve the overflow issue
 		if (nextPath == null && allowPaths.size() > 0) {
-			System.out.println(" not found");
+//			System.out.println(" not found");
 			if (pathArr.length == 1) {
 				nextPath = pathArr[0];
 			}else {

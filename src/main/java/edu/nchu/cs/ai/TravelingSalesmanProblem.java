@@ -27,6 +27,14 @@ import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.stage.Stage;
 
+/**
+* An application for testing Ant Colony Optimization algorithm.
+* 1. running and collecting the objective every iteration.
+* 2. averaging the value per iteration.
+* 3. draw the convergence chart.
+* @author Jo
+*
+*/
 public class TravelingSalesmanProblem extends Application{
 
 	private static String winTitle;
@@ -41,21 +49,25 @@ public class TravelingSalesmanProblem extends Application{
 		//load and prepare the output files
 		String citySource = "resources/eil51.tsp";
 		String offcialAnswer = "resources/eil51.opt.tour";
-		String impleAnswer = "resources/eil51.imp.opt9.tour";
-		String impleImproveAnswer = "resources/eil51.impimprove.opt9.tour";
+		String impleAnswer = "resources/eil51.imp.opt.tour";
+		String impleImproveAnswer = "resources/eil51.impimprove.opt.tour";
 
 		//ant number
-		int antCount = 50;
+		int antCount = 50;//Integer.valueOf(args[0]);
 		//ant's pheromone
-		double pheromone = 10;
+		double pheromone = 10;//Double.valueOf(args[1]);
 		//pheromone affect rate (alpha)
-		double pheromoneAffectRate = 1;
+		double pheromoneAffectRate = 1;//Double.valueOf(args[2]);;
 		//distance affect rate (beta)
-		double distanceAffectRate = 2;
+		double distanceAffectRate = 2;//Double.valueOf(args[3]);;
 		//Pheromone Evaporation Rate
-		double evaporationRate = 0.7;
-		int iteration = 2000;
-		int runTimes =30;
+		double evaporationRate = 0.7;//Double.valueOf(args[4]);;
+		//specific a limitation value to tell this program might fall into local optimum
+		int timesToLocalOptimum = 10;//Integer.valueOf(args[5]);
+		//iterations
+		int iteration = 2000;//Integer.valueOf(args[6]);
+		//run times
+		int runTimes = 30;//Integer.valueOf(args[7]);
 		try {
 			Path path = Paths.get(citySource);
 			Stream<String> stream = Files.lines(path);
@@ -78,10 +90,10 @@ public class TravelingSalesmanProblem extends Application{
 				ExecutorService executor = Executors.newFixedThreadPool(2);
 				//original ACO
 				AntColonyOptimization aco = new
-						AntColonyOptimization(cities, antCount, pheromone, pheromoneAffectRate, distanceAffectRate, evaporationRate, iteration, false);
+						AntColonyOptimization(cities, antCount, pheromone, pheromoneAffectRate, distanceAffectRate, evaporationRate, timesToLocalOptimum, iteration, false);
 				//improve ACO
 				AntColonyOptimization acoImprove = new
-						AntColonyOptimization(cities, antCount, pheromone, pheromoneAffectRate, distanceAffectRate, evaporationRate, iteration, true);
+						AntColonyOptimization(cities, antCount, pheromone, pheromoneAffectRate, distanceAffectRate, evaporationRate, timesToLocalOptimum, iteration, true);
 				Future<OptimumSolution> acoFuture = executor.submit(aco);
 				Future<OptimumSolution> acoImproveFuture = executor.submit(acoImprove);
 				OptimumSolution os = acoFuture.get();
